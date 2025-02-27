@@ -1,6 +1,6 @@
 import os
 from groq import Groq, APIError
-import httpx  
+import httpx
 
 client = Groq(
     api_key=os.getenv("GROQ_API_KEY"),
