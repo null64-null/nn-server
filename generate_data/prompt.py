@@ -1,3 +1,5 @@
+import re
+
 def prompt_relevance(first_text_order, second_text_order, option_oder: str = None):
 	prompt = f'''
 		以下のフォーマットで、短文1（Q）と短文2（D）のペアを100個生成してください。
@@ -61,3 +63,8 @@ def prompt_score(feature, option_oder: str = None):
 	'''
 
 	return prompt
+
+def extract_json_block(text):
+    pattern = r"```json\s*(.*?)\s*```"
+    match = re.search(pattern, text, re.DOTALL)
+    return match.group(1) if match else None

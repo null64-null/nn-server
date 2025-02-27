@@ -3,7 +3,7 @@ from fastapi import HTTPException
 from pydantic import BaseModel
 from typing import List, Optional
 from generate_model.learning import generate_model
-from generate_data.prompt import prompt_relevance, prompt_score
+from generate_data.prompt import prompt_relevance, prompt_score, extract_json_block
 from generate_data.groq import get_completion
 import torch
 
@@ -61,13 +61,17 @@ async def create_data(request: DataRequest):
 
     prompt = ""
 
-    if feature != None:
+    if feature is not None:
         prompt = prompt_score(feature, option_oder)
-    elif first_text_order != None and second_text_order != None:
+    elif first_text_order is not None and second_text_order is not None:
         prompt = prompt_relevance(first_text_order, second_text_order, option_oder)
     else:
         raise HTTPException(status_code=400, detail="リクエストのパターンが不正です")
     
     response = await get_completion(prompt)
 
-    return response
+    json_data = extract_json_block(response)
+    if json_data is None:
+        raise HTTPException(status_code=500, detail="JSONデータ抜き出しに失敗しました")
+
+    return json_data

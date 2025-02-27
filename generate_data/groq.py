@@ -1,4 +1,5 @@
 import os
+import asyncio
 from groq import Groq, APIError
 import httpx
 
@@ -10,10 +11,11 @@ async def get_completion(prompt, model="llama-3.3-70b-versatile"):
     messages = [{"role": "user", "content": prompt}]
     
     try:
-        chat_completion = await client.chat.completions.create_async(
-            messages=messages,
-            model=model,
-        )
+        chat_completion = await asyncio.to_thread(
+        client.chat.completions.create,
+        messages=messages,
+        model=model
+    )
         return chat_completion.choices[0].message.content
 
     except APIError as e:
