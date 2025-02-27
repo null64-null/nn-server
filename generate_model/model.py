@@ -1,20 +1,5 @@
 import torch.nn as nn
 
-'''
-def layerSelector(orders, input_size):
-  layers = []
-
-  for order in orders:
-    if order["type"] == "Linear":
-        layers.append(nn.Linear(input_size, order["nodes"]))
-        input_size = order["nodes"]
-    if order["type"] == "ReLU":
-        layers.append(nn.ReLU())
-    if order["type"] == "Sigmoid":
-        layers.append(nn.Sigmoid())
-
-  return nn.Sequential(*layers)
-'''
 def layerSelector(orders, input_size):
   layers = []
 

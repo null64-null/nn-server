@@ -11,7 +11,7 @@ app = FastAPI()
 
 class LayerOrder(BaseModel):
     type: str
-    nodes: Optional[int] = None  # "Linear" のときだけ "nodes" が必要
+    nodes: Optional[int] = None
 
 class ModelRequest(BaseModel):
     input_size: int
