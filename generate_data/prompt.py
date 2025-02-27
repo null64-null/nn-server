@@ -6,23 +6,23 @@ def prompt_relevance(first_text_order, second_text_order, option_oder: str = Non
 		フォーマット:
 		```json
 		[
-			{
+			{{
 				"Q": "短文1",
 				"D": "短文2",
 				"score": 0.9
-			},
-			{
+			}},
+			{{
 				"Q": "短文1",
 				"D": "短文2",
 				"score": 0.3
-			}
+			}}
 		]
 
 		制約:
 		- 50ペアは **高スコア（0.8〜1.0）** で、明確に関連があるものを作成する。
 		- 50ペアは **低スコア（0.0〜0.4）** で、関連が薄いものを作成する。
-		- **Q は{first_text_order}（20〜40文字）。
-		- **D は{second_text_order}（20〜40文字）。
+		- **Q は{first_text_order}（20〜40文字）。**
+		- **D は{second_text_order}（20〜40文字）。**
 		- **ランダム性を持たせて、できるだけ多様な組み合わせを作る**。
 		
     {option_oder}
@@ -39,20 +39,20 @@ def prompt_score(feature, option_oder: str = None):
 		### **フォーマット（JSON）**
 		```json
 		[
-			{
+			{{
 				"text": "短文",
 				"score": 0.9
-			},
-			{
+			}},
+			{{
 				"text": "別の短文",
 				"score": 0.3
-			}
+			}}
 		]
 
 		制約:
 		- 50ペアは **高スコア（0.8〜1.0）** で、明確に{feature}の度合いが高いものを作成する。
 		- 50ペアは **低スコア（0.0〜0.4）** で{feature}の度合が低いものを作成する。
-		- **短文は（20〜40文字）。
+		- **短文は（20〜40文字）。**
 		- **ランダム性を持たせて、できるだけ多様な組み合わせを作る**。
 		
 		{option_oder}
