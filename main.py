@@ -1,32 +1,13 @@
 from fastapi import FastAPI
 from fastapi import HTTPException
-from pydantic import BaseModel
-from typing import List, Optional
+from classes.model import ModelRequest
+from classes.data import DataRequest
 from generate_model.learning import generate_model
 from generate_data.prompt import prompt_relevance, prompt_score, make_json
 from generate_data.groq import get_completion
 import torch
 
 app = FastAPI()
-
-class LayerOrder(BaseModel):
-    type: str
-    nodes: Optional[int] = None
-
-class ModelRequest(BaseModel):
-    input_size: int
-    model_orders: List[LayerOrder]
-    criterion_order: str
-    num_epochs: int
-    batch_size: int
-    #inputs: List[List[float]]
-    #labels: List[float]
-
-class DataRequest(BaseModel):
-    feature: Optional[str] = None
-    first_text_order: Optional[str] = None
-    second_text_order: Optional[str] = None
-    option_oder: Optional[str] = None
 
 @app.get("/")
 def read_root():
