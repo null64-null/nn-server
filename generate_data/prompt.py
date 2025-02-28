@@ -1,4 +1,6 @@
 import re
+from fastapi import HTTPException
+import json
 
 def prompt_relevance(first_text_order, second_text_order, option_oder: str = None):
 	prompt = f'''
@@ -68,3 +70,16 @@ def extract_json_block(text):
     pattern = r"```json\s*(.*?)\s*```"
     match = re.search(pattern, text, re.DOTALL)
     return match.group(1) if match else None
+
+def make_json(text):
+	json_str = extract_json_block(text)
+
+	if json_str is None:
+		raise HTTPException(status_code=500, detail="responseからのJSONスニペット部の抜き出しに失敗しました")
+
+	try:
+		json_data = json.loads(json_str)
+	except json.JSONDecodeError:
+		raise HTTPException(status_code=500, detail="JSON化できませんでした")	
+	
+	return json_data

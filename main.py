@@ -3,7 +3,7 @@ from fastapi import HTTPException
 from pydantic import BaseModel
 from typing import List, Optional
 from generate_model.learning import generate_model
-from generate_data.prompt import prompt_relevance, prompt_score, extract_json_block
+from generate_data.prompt import prompt_relevance, prompt_score, make_json
 from generate_data.groq import get_completion
 import torch
 
@@ -70,8 +70,6 @@ async def create_data(request: DataRequest):
     
     response = await get_completion(prompt)
 
-    json_data = extract_json_block(response)
-    if json_data is None:
-        raise HTTPException(status_code=500, detail="JSONデータ抜き出しに失敗しました")
-
+    json_data = make_json(response)
+    
     return json_data
