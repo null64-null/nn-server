@@ -1,10 +1,11 @@
 from fastapi import FastAPI
 from fastapi import HTTPException
-from classes.model import ModelRequest
+from classes.model import LearningRequest
 from classes.data import DataRequest
 from generate_model.learning import generate_model
 from generate_data.prompt import prompt_relevance, prompt_score, make_json
 from generate_data.groq import get_completion
+from db.save_model_request import save_learning_request_query, update_learning_request_query, delete_learning_request_query
 import torch
 
 app = FastAPI()
@@ -14,7 +15,7 @@ def read_root():
     return {"message": "Hello, FastAPI!"}
 
 @app.post("/create_model")
-async def create_model(request: ModelRequest):
+async def create_model(request: LearningRequest):
     input_size = request.input_size
     model_orders = request.model_orders  # List[LayerOrder]
     criterion_order = request.criterion_order
@@ -32,6 +33,19 @@ async def create_model(request: ModelRequest):
 
     state_dict = generate_model(input_size, model_orders, criterion_order, num_epochs, batch_size, inputs, labels)
     return state_dict
+
+@app.post("/save_learninig_request")
+async def save_learninig_request(request: LearningRequest):
+    save_learning_request_query(request)
+
+@app.post("/update_learninig_request")
+async def update_learninig_request(request: LearningRequest):
+    update_learning_request_query(request)
+
+@app.post("/delete_learninig_request")
+async def delete_learninig_request(request: LearningRequest):
+    delete_learning_request_query(request)
+
 
 @app.post("/create_data")
 async def create_data(request: DataRequest):
@@ -54,3 +68,4 @@ async def create_data(request: DataRequest):
     json_data = make_json(response)
     
     return json_data
+
