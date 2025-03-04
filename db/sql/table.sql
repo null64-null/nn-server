@@ -1,10 +1,10 @@
 CREATE TABLE models (
-    id SERIAL PRIMARY KEY,
+    id TEXT PRIMARY KEY,
     name TEXT NOT NULL,
+    nn BYTEA NOT NULL,  -- バイナリ形式でモデル保存
+    learning_history JSONB NOT NULL, -- 学習履歴
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    nn BYTEA,  -- バイナリ形式でモデル保存
-    learning_history: JSONB, -- 学習履歴
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE learning_requests (
@@ -24,7 +24,7 @@ CREATE TABLE learning_requests (
 CREATE TABLE learning_data (
     id SERIAL PRIMARY KEY,
     name TEXT NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    data JSONB NOT NULL
+    data JSONB NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 

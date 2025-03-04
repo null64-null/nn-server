@@ -72,7 +72,9 @@ def generate_model(input_size, model_orders, criterion_order, num_epochs, batch_
     # 学習実行
     train(model, dataloader, criterion, optimizer, num_epochs)
 
-    state_dict = model.state_dict()
-    torch.save(state_dict, 'model.pth')
-    print(state_dict.keys())
-    return state_dict
+    #state_dict = model.state_dict()
+    #torch.save(state_dict, 'model.pth')
+    #print(state_dict.keys())
+    #return state_dict
+
+    return model

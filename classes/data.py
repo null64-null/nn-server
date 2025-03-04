@@ -1,7 +1,20 @@
 from pydantic import BaseModel
-from typing import Optional
-class DataRequest(BaseModel):
-    feature: Optional[str] = None
-    first_text_order: Optional[str] = None
-    second_text_order: Optional[str] = None
-    option_oder: Optional[str] = None
+from typing import List, Union
+
+class LearningRelevanceData(BaseModel):
+    Q: str
+    D: str
+    score: float
+
+class LearningScoreData(BaseModel):
+    text: str
+    score: float
+
+class LearningDataRequest(BaseModel):
+    id: str
+    name: str
+    data: Union[List[LearningRelevanceData], List[LearningScoreData]]
+    created_at: str
+
+class LearningDataDeleteRequest(BaseModel):
+    id: str
