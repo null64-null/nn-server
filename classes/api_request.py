@@ -9,3 +9,6 @@ class CreateLearningDataRequest(BaseModel):
 
 class DeleteRequest(BaseModel):
     id: str
+
+class GetRequest(BaseModel):
+    id: str

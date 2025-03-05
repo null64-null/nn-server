@@ -18,6 +18,7 @@ class Model(BaseModel):
     created_at: str
     updated_at: str
 
+# 取得（1件）
 async def get_model_query(conn, model_id: str):
     row = await conn.fetchrow("""
         SELECT id, name, nn, learning_history, created_at, updated_at
@@ -42,6 +43,16 @@ async def get_model_query(conn, model_id: str):
         updated_at=row["updated_at"].isoformat()
     )
 
+# 取得（全件、idのみ）
+async def get_all_model_ids_query(conn):
+    rows = await conn.fetch("""
+        SELECT id
+        FROM models
+    """)
+    
+    return [row["id"] for row in rows]
+
+# 保存（1件）
 async def save_model_query(conn, request: Model):
     learning_history_json = json.dumps([log.model_dump() for log in request.learning_history])  
     await conn.execute("""
@@ -55,7 +66,8 @@ async def save_model_query(conn, request: Model):
     learning_history_json,
     datetime.strptime(request.created_at, "%Y-%m-%d").date(), 
     datetime.strptime(request.updated_at, "%Y-%m-%d").date())
-    
+
+# 更新
 async def update_model_query(conn, request: Model):
     learning_history_json = json.dumps([log.model_dump() for log in request.learning_history]) 
     await conn.execute("""
@@ -74,7 +86,8 @@ async def update_model_query(conn, request: Model):
     learning_history_json,
     datetime.strptime(request.created_at, "%Y-%m-%d").date(), 
     datetime.strptime(request.updated_at, "%Y-%m-%d").date())
-            
+
+# 削除
 async def delete_model_query(conn, id: str):
 	await conn.execute("""
 		DELETE FROM models 
