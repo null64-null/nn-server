@@ -187,6 +187,10 @@ async def delete_learninig_request(request: DeleteRequest):
             return {"message": "Data delete successfully"}
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
+
+# 学習リクエストのidのみ全件取得
+
+# 学習リクエストの取得（1件）
         
 
 ############### 学習データ (learning_data) ###############
@@ -235,3 +239,7 @@ async def delete_learning_data(request: DeleteRequest):
             return {"message": "Data delete successfully"}
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
+        
+# 学習データのidのみ全件取得
+
+# 学習データの取得（1件）
