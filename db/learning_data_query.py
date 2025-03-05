@@ -1,23 +1,41 @@
 from fastapi import HTTPException
 import json
+from pydantic import BaseModel
 from datetime import datetime
 from db.connect import get_db_pool
-from classes.data import LearningDataRequest, LearningDataDeleteRequest
+from typing import List, Union, Optional
 
-async def save_learning_data_query(conn, request: LearningDataRequest):
-    data_json = [d.model_dump() for d in request.data]
+class Relevance(BaseModel):
+    Q: str
+    D: str
+    score: float
+
+class Score(BaseModel):
+    text: str
+    score: float
+
+class LearningData(BaseModel):
+    id: str
+    name: str
+    data: Union[List[Relevance], List[Score]]
+    created_at: Optional[str] = None
+
+async def save_learning_data_query(conn, request: LearningData):
+    data_json = json.dumps([d.model_dump() for d in request.data])
+    print("-- json ---")
+    print(data_json)
     await conn.execute("""
-        INSERT INTO learinig_data (
+        INSERT INTO learning_data (
             id, name, data, created_at
         ) VALUES ($1, $2, $3, $4)
     """,
     request.id,
     request.name,
 	data_json,
-    datetime.strptime(request.created_at, "%Y-%m-%d").date())
+    datetime.now())
             
-async def delete_learning_data_query(conn, request: LearningDataDeleteRequest):
+async def delete_learning_data_query(conn, id: str):
 	await conn.execute("""
-		DELETE FROM learinig_data 
+		DELETE FROM learning_data
 		WHERE id = $1
-	""", request.id)
+	""", id)

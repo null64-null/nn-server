@@ -2,7 +2,25 @@ from fastapi import HTTPException
 import json
 from datetime import datetime
 from db.connect import get_db_pool
-from classes.model import LearningRequest, LearningDeleteRequest
+from pydantic import BaseModel
+from typing import List, Union, Optional
+
+class LayerOrder(BaseModel):
+    type: str
+    nodes: Optional[int] = None
+
+class LearningRequest(BaseModel):
+    id: str
+    name: str
+    input_size: int
+    model_orders: List[LayerOrder]
+    criterion_order: str
+    num_epochs: int
+    batch_size: int
+    train_data_id: str
+    test_data_id: str
+    created_at: str
+    updated_at: str
             
 async def save_learning_request_query(conn, request: LearningRequest):
     model_orders_json = json.dumps([layer.model_dump() for layer in request.model_orders], indent=2)
@@ -52,9 +70,9 @@ async def update_learning_request_query(conn, request: LearningRequest):
     datetime.strptime(request.updated_at, "%Y-%m-%d").date())
     
             
-async def delete_learning_request_query(conn, request: LearningDeleteRequest):
+async def delete_learning_request_query(conn, id: str):
 	await conn.execute("""
 		DELETE FROM learning_requests 
 		WHERE id = $1
-	""", request.id)
+	""", id)
             

@@ -1,13 +1,24 @@
-from fastapi import HTTPException
 import json
 from datetime import datetime
-from db.connect import get_db_pool
-from classes.model import ModelRequest, ModelDeleteRequest
-from classes.model import LearningLog
+from pydantic import BaseModel
+from typing import List, Optional
+from db.learning_request_query import LearningRequest
 
 import json
 
-async def get_model_query(conn, model_id: str) -> ModelRequest:
+class LearningLog(BaseModel):
+    accuracy: float
+    learning_request: LearningRequest
+
+class Model(BaseModel):
+    id: str
+    name: str
+    nn: bytes
+    learning_history: Optional[List[LearningLog]] = []
+    created_at: str
+    updated_at: str
+
+async def get_model_query(conn, model_id: str):
     row = await conn.fetchrow("""
         SELECT id, name, nn, learning_history, created_at, updated_at
         FROM models
@@ -22,7 +33,7 @@ async def get_model_query(conn, model_id: str) -> ModelRequest:
         LearningLog(**log) for log in json.loads(row["learning_history"])
     ]
 
-    return ModelRequest(
+    return Model(
         id=row["id"],
         name=row["name"],
         nn=nn,
@@ -31,7 +42,7 @@ async def get_model_query(conn, model_id: str) -> ModelRequest:
         updated_at=row["updated_at"].isoformat()
     )
 
-async def save_model_query(conn, request: ModelRequest):
+async def save_model_query(conn, request: Model):
     learning_history_json = json.dumps([log.model_dump() for log in request.learning_history])  
     await conn.execute("""
         INSERT INTO models (
@@ -45,7 +56,7 @@ async def save_model_query(conn, request: ModelRequest):
     datetime.strptime(request.created_at, "%Y-%m-%d").date(), 
     datetime.strptime(request.updated_at, "%Y-%m-%d").date())
     
-async def update_model_query(conn, request: ModelRequest):
+async def update_model_query(conn, request: Model):
     learning_history_json = json.dumps([log.model_dump() for log in request.learning_history]) 
     await conn.execute("""
         UPDATE models 
@@ -64,8 +75,8 @@ async def update_model_query(conn, request: ModelRequest):
     datetime.strptime(request.created_at, "%Y-%m-%d").date(), 
     datetime.strptime(request.updated_at, "%Y-%m-%d").date())
             
-async def delete_model_query(conn, request: ModelDeleteRequest):
+async def delete_model_query(conn, id: str):
 	await conn.execute("""
 		DELETE FROM models 
 		WHERE id = $1
-	""", request.id)
+	""", id)

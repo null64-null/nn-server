@@ -22,7 +22,7 @@ CREATE TABLE learning_requests (
 
 -- 編集不可
 CREATE TABLE learning_data (
-    id SERIAL PRIMARY KEY,
+    id TEXT PRIMARY KEY,
     name TEXT NOT NULL,
     data JSONB NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP

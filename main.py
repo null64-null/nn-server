@@ -1,15 +1,18 @@
 import io
-from fastapi import FastAPI
+from fastapi import FastAPI, Query
 from fastapi import HTTPException
-from classes.model import LearningRequest, LearningDeleteRequest, LearningLog, ModelRequest
-from classes.data import LearningDataRequest
+import uuid
+import datetime
+from pydantic import BaseModel
+
+from classes.api_request import CreateLearningDataRequest, DeleteRequest
 from generate_model.learning import generate_model
 from generate_data.prompt import prompt_relevance, prompt_score, make_json
 from generate_data.groq import get_completion
-from db.learning_request_query import save_learning_request_query, update_learning_request_query, delete_learning_request_query
 from db.connect import get_db_pool
-from db.learning_data_query import save_learning_data_query, delete_learning_data_query
-from db.model_query import get_model_query, save_model_query, update_model_query
+from db.learning_request_query import save_learning_request_query, update_learning_request_query, delete_learning_request_query, LearningRequest
+from db.learning_data_query import save_learning_data_query, delete_learning_data_query, LearningData
+from db.model_query import get_model_query, save_model_query, update_model_query, LearningLog, Model
 import torch
 
 async def lifespan(app: FastAPI):
@@ -28,6 +31,7 @@ app = FastAPI(lifespan=lifespan)
 def read_root():
     return {"message": "Hello, FastAPI!"}
 
+# モデルの生成
 @app.post("/create_model")
 async def create_model(request: LearningRequest):
     # パラメタを取得
@@ -81,7 +85,7 @@ async def create_model(request: LearningRequest):
         )
     #print(learning_history)
     # model保存リクエストを作成
-    req = ModelRequest(
+    req = Model(
         id=id,
         name=name,
         nn=model_bytea,
@@ -101,8 +105,9 @@ async def create_model(request: LearningRequest):
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
     
-    return model
+    return model #仮
 
+# 学習リクエストの保存
 @app.post("/save_learninig_request")
 async def save_learninig_request(request: LearningRequest):
     pool = await get_db_pool()
@@ -116,6 +121,7 @@ async def save_learninig_request(request: LearningRequest):
             print(e)
             raise HTTPException(status_code=500, detail=str(e))
 
+# 学習リクエストの更新
 @app.put("/update_learninig_request")
 async def update_learninig_request(request: LearningRequest):
     pool = await get_db_pool()
@@ -126,18 +132,20 @@ async def update_learninig_request(request: LearningRequest):
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
 
+# 学習リクエストの削除
 @app.delete("/delete_learninig_request")
-async def delete_learninig_request(request: LearningDeleteRequest):
+async def delete_learninig_request(request: DeleteRequest):
     pool = await get_db_pool()
     async with pool.acquire() as conn:
         try:
-            await delete_learning_request_query(conn,request)
+            await delete_learning_request_query(conn, request.id)
             return {"message": "Data delete successfully"}
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
 
-@app.post("/create_data")
-async def create_data(request: LearningDataRequest):
+# 学習データの生成・保存
+@app.post("/create_learning_data")
+async def create_data(request: CreateLearningDataRequest):
     feature = request.feature
     first_text_order = request.first_text_order
     second_text_order = request.second_text_order
@@ -155,6 +163,27 @@ async def create_data(request: LearningDataRequest):
     response = await get_completion(prompt)
 
     json_data = make_json(response)
-    
-    return json_data
 
+    pool = await get_db_pool()
+    async with pool.acquire() as conn:
+        try:
+            await save_learning_data_query(conn, LearningData(
+                id=str(uuid.uuid4()),
+                name="generated_data",
+                data=json_data,
+            ))
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))
+    
+    return json_data #仮
+
+# 学習データの削除
+@app.delete("/delete_learning_data")
+async def delete_learning_data(request: DeleteRequest):
+    pool = await get_db_pool()
+    async with pool.acquire() as conn:
+        try:
+            await delete_learning_data_query(conn, request.id)
+            return {"message": "Data delete successfully"}
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))
