@@ -12,9 +12,10 @@ from generate_data.groq import get_completion
 from db.connect import get_db_pool
 from db.learning_request_query import save_learning_request_query, update_learning_request_query, delete_learning_request_query, LearningRequest
 from db.learning_data_query import save_learning_data_query, delete_learning_data_query, LearningData
-from db.model_query import get_model_query, save_model_query, update_model_query, LearningLog, get_all_model_ids_query ,Model
+from db.model_query import get_model_query, save_model_query, update_model_query, LearningLog, get_all_model_ids_query, delete_model_query, Model
 import torch
 
+# DB接続制御
 async def lifespan(app: FastAPI):
     print("Starting up: creating DB pool")
     db_pool = await get_db_pool()
@@ -25,11 +26,16 @@ async def lifespan(app: FastAPI):
     print("Shutting down: closing DB pool")
     await db_pool.close()  # アプリ終了時に DB 接続を閉じる
 
+# アプリ起動
 app = FastAPI(lifespan=lifespan)
 
+# ヘルスチェック用
 @app.get("/")
 def read_root():
     return {"message": "Hello, FastAPI!"}
+
+
+############### モデル (models) ###############
 
 # モデルの生成
 @app.post("/create_model")
@@ -83,7 +89,7 @@ async def create_model(request: LearningRequest):
                 learning_request=request
             )
         )
-    #print(learning_history)
+
     # model保存リクエストを作成
     req = Model(
         id=id,
@@ -100,7 +106,6 @@ async def create_model(request: LearningRequest):
             if selected_model is None:
                 await save_model_query(conn, req)
             else:
-                print("update")
                 await update_model_query(conn, req)
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
@@ -114,7 +119,7 @@ async def get_all_model_ids():
     async with pool.acquire() as conn:
         try:
             model_ids = await get_all_model_ids_query(conn)
-            return {"model_ids": model_ids}
+            return model_ids
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
 
@@ -127,9 +132,25 @@ async def get_model(request: GetRequest):
             model = await get_model_query(conn, request.id)
             if model is None:
                 raise HTTPException(status_code=404, detail="Model not found")
-            return model
+            model_dict = model.model_dump()
+            del model_dict["nn"]
+            return model_dict
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
+
+# モデルの削除（1件）
+@app.delete("/delete_model")
+async def delete_model(request: DeleteRequest):
+    pool = await get_db_pool()
+    async with pool.acquire() as conn:
+        try:
+            await delete_model_query(conn, request.id)
+            return {"message": "Model deleted successfully"}
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))
+
+
+############### 学習リクエスト (learning_request) ###############
 
 # 学習リクエストの保存
 @app.post("/save_learninig_request")
@@ -166,6 +187,9 @@ async def delete_learninig_request(request: DeleteRequest):
             return {"message": "Data delete successfully"}
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
+        
+
+############### 学習データ (learning_data) ###############
 
 # 学習データの生成・保存
 @app.post("/create_learning_data")
