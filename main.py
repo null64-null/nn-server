@@ -10,7 +10,7 @@ from generate_model.learning import generate_model
 from generate_data.prompt import prompt_relevance, prompt_score, make_json
 from generate_data.groq import get_completion
 from db.connect import get_db_pool
-from db.learning_request_query import save_learning_request_query, update_learning_request_query, delete_learning_request_query, LearningRequest
+from db.learning_request_query import save_learning_request_query, update_learning_request_query, delete_learning_request_query, get_all_learning_request_ids_query, get_learning_request_query, LearningRequest
 from db.learning_data_query import save_learning_data_query, delete_learning_data_query, LearningData
 from db.model_query import get_model_query, save_model_query, update_model_query, LearningLog, get_all_model_ids_query, delete_model_query, Model
 import torch
@@ -189,9 +189,28 @@ async def delete_learninig_request(request: DeleteRequest):
             raise HTTPException(status_code=500, detail=str(e))
 
 # 学習リクエストのidのみ全件取得
+@app.get("/get_all_learning_request_ids")
+async def get_all_learning_request_ids():
+    pool = await get_db_pool()
+    async with pool.acquire() as conn:
+        try:
+            ids = await get_all_learning_request_ids_query(conn)
+            return ids
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))
 
 # 学習リクエストの取得（1件）
-        
+@app.get("/get_learning_request")
+async def get_learning_request(request: GetRequest):
+    pool = await get_db_pool()
+    async with pool.acquire() as conn:
+        try:
+            result = await get_learning_request_query(conn, request.id)
+            if result is None:
+                raise HTTPException(status_code=404, detail="Learning request not found")
+            return result
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))
 
 ############### 学習データ (learning_data) ###############
 
