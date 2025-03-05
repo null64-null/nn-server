@@ -1,8 +1,6 @@
-from fastapi import HTTPException
 import json
 from pydantic import BaseModel
 from datetime import datetime
-from db.connect import get_db_pool
 from typing import List, Union, Optional
 
 class Relevance(BaseModel):

@@ -1,9 +1,7 @@
-from fastapi import HTTPException
 import json
 from datetime import datetime
-from db.connect import get_db_pool
 from pydantic import BaseModel
-from typing import List, Union, Optional
+from typing import List, Optional
 
 class LayerOrder(BaseModel):
     type: str

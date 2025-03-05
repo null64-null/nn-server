@@ -1,10 +1,7 @@
-import torch
-import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader, TensorDataset
 from generate_model.model import CustomNN
 from generate_model.criterion import criterionSelector
-import json
 
 # ネットワーク定義
 '''

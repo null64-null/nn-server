@@ -1,9 +1,7 @@
 import io
-from fastapi import FastAPI, Query
-from fastapi import HTTPException
+from fastapi import FastAPI, HTTPException
 import uuid
-import datetime
-from pydantic import BaseModel
+import torch
 
 from classes.api_request import CreateLearningDataRequest, DeleteRequest, GetRequest
 from generate_model.learning import generate_model
@@ -13,7 +11,7 @@ from db.connect import get_db_pool
 from db.learning_request_query import save_learning_request_query, update_learning_request_query, delete_learning_request_query, get_all_learning_request_ids_query, get_learning_request_query, LearningRequest
 from db.learning_data_query import save_learning_data_query, delete_learning_data_query, get_all_learning_data_ids_query, get_learning_data_query, LearningData
 from db.model_query import get_model_query, save_model_query, update_model_query, LearningLog, get_all_model_ids_query, delete_model_query, Model
-import torch
+
 
 # DB接続制御
 async def lifespan(app: FastAPI):
