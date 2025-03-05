@@ -212,6 +212,7 @@ async def get_learning_request(request: GetRequest):
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
 
+
 ############### 学習データ (learning_data) ###############
 
 # 学習データの生成・保存
