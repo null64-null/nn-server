@@ -12,3 +12,7 @@ class DeleteRequest(BaseModel):
 
 class GetRequest(BaseModel):
     id: str
+    
+class InferenceRequest(BaseModel):
+    text: str
+    model_id: str

@@ -2,10 +2,12 @@ import io
 from fastapi import FastAPI, HTTPException
 import uuid
 import torch
+from torch.serialization import safe_globals
+from generate_model.model import CustomNN 
 
-from classes.api_request import CreateLearningDataRequest, DeleteRequest, GetRequest
+from classes.api_request import CreateLearningDataRequest, DeleteRequest, GetRequest, InferenceRequest
 from generate_model.learning import generate_model
-from generate_model.vector import make_vectorized_data_set
+from generate_model.vector import make_vectorized_data_set, vectorize_text
 from generate_data.prompt import prompt_relevance, prompt_score, make_json
 from generate_data.groq import get_completion
 from db.connect import get_db_pool
@@ -284,3 +286,34 @@ async def get_learning_data(request: GetRequest):
             return data
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
+
+
+############### 推論 (inference) ###############
+@app.post("/inference")
+async def inference(request: InferenceRequest):
+    pool = await get_db_pool()
+    async with pool.acquire() as conn:
+        try:
+            input_vector = vectorize_text(request.text)
+            imput_vector_flatten = input_vector.squeeze(0).mean(dim=0)
+
+            model = await get_model_query(conn, request.model_id)
+          
+            model_binary = model.nn
+            model_buffer = io.BytesIO(model_binary)
+            loaded_model = torch.load(model_buffer)
+
+            with safe_globals([CustomNN]):
+                loaded_model = CustomNN()  # 事前にモデルをインスタンス化
+                loaded_model.load_state_dict(torch.load(model_buffer, weights_only=True))  # 重みのみロード
+                loaded_model.eval()  # 推論モードに切り替え
+
+                with torch.no_grad():
+                    output = loaded_model(imput_vector_flatten)
+                    prediction = output.item()
+
+            return {"prediction": prediction}
+        
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))
+
