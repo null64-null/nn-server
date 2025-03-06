@@ -61,10 +61,8 @@ async def create_model(request: LearningRequest):
     train_data = None
     async with db_pool.acquire() as conn:
         train_data = await get_learning_data_query(conn, train_data_id)
-    
-    print("vectorizing...")
     inputs, labels = make_vectorized_data_set(train_data)
-    print("vectorizing end")
+    
     input_size = inputs.shape[1]
 
     # モデルを生成する
