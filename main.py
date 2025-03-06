@@ -5,6 +5,7 @@ import torch
 
 from classes.api_request import CreateLearningDataRequest, DeleteRequest, GetRequest
 from generate_model.learning import generate_model
+from generate_model.vector import make_vectorized_data_set
 from generate_data.prompt import prompt_relevance, prompt_score, make_json
 from generate_data.groq import get_completion
 from db.connect import get_db_pool
@@ -58,9 +59,19 @@ async def create_model(request: LearningRequest):
         selected_model = await get_model_query(conn, id)
 
     # データをGETする
-    total_data = 1000
-    inputs = torch.randn(total_data, input_size)
-    labels = torch.randint(0, 2, (total_data, 1)).float()
+    train_data = None
+    test_data = None
+    async with db_pool.acquire() as conn:
+        train_data = await get_learning_data_query(conn, train_data_id)
+        test_data = await get_learning_data_query(conn, test_data_id)
+    
+    print("vectorizing...")
+    inputs, labels = make_vectorized_data_set(train_data)
+    print("vectorizing end")
+    input_size = inputs.shape[1]
+    # total_data = 1000
+    # inputs = torch.randn(total_data, input_size)
+    # labels = torch.randint(0, 2, (total_data, 1)).float()
 
     # モデルを生成する
     model = generate_model(input_size, model_orders, criterion_order, num_epochs, batch_size, inputs, labels)

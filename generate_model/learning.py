@@ -61,6 +61,10 @@ def generate_model(input_size, model_orders, criterion_order, num_epochs, batch_
     # 損失関数と最適化手法
     criterion = criterionSelector(criterion_order)
     optimizer = optim.SGD(model.parameters(), lr=0.01)
+
+    # inputsのベクトル化
+    texts = [input["text"] for input in inputs]
+    embeddings = model.encode(texts, convert_to_tensor=True)  
     
     # データローダー
     dataset = TensorDataset(inputs, labels)
