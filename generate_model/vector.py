@@ -1,6 +1,6 @@
 import torch
 from transformers import BertModel, BertTokenizer
-from db.learning_data_query import LearningData
+from db.learning_data_query import Relevance ,Score ,LearningData
 
 # ライブラリ導入
 tokenizer = BertTokenizer.from_pretrained("cl-tohoku/bert-base-japanese")
@@ -36,8 +36,21 @@ def vectorize_texts(texts):
     return torch.stack(vectors)
     
 def divide_input(learning_data: LearningData):
-    texts = [data["text"] for data in learning_data]
-    scores = [float(data["score"]) for data in learning_data]
+    texts = []
+    scores = []
+    
+    for item in learning_data.data:
+        if isinstance(item, Score):
+            texts.append(item.text)
+            scores.append(item.score)
+        elif isinstance(item, Relevance):
+            # Relevanceの場合、QとDを結合してテキストとして扱う
+            combined_text = f"{item.Q} {item.D}"
+            texts.append(combined_text)
+            scores.append(item.score)
+        else:
+            raise ValueError(f"Unexpected data type: {type(item)}")
+
     return texts, scores
 
 def make_vectorized_data_set(learning_data: LearningData):

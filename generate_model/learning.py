@@ -29,9 +29,10 @@ class SimpleNN(nn.Module):
 def train_step(model, criterion, optimizer, inputs, labels):
     # 順伝搬
     outputs = model(inputs) #outputsは多分model情報も込み（modelはnnライブラリメソッド）
-    
+  
     # 損失計算
-    loss = criterion(outputs, labels) #lossは多分model情報も込み（criterionはnnライブラリメソッド）
+    #outputsのサイズを[*,1]から[*]に変更してlabelsのサイズと合わせる
+    loss = criterion(outputs.squeeze(), labels) #lossは多分model情報も込み（criterionはnnライブラリメソッド
     
     # 勾配初期化 & 逆伝搬
     optimizer.zero_grad() #optimizerはmodelを引数であらかじめ取り込んでいる
@@ -61,10 +62,6 @@ def generate_model(input_size, model_orders, criterion_order, num_epochs, batch_
     # 損失関数と最適化手法
     criterion = criterionSelector(criterion_order)
     optimizer = optim.SGD(model.parameters(), lr=0.01)
-
-    # inputsのベクトル化
-    texts = [input["text"] for input in inputs]
-    embeddings = model.encode(texts, convert_to_tensor=True)  
     
     # データローダー
     dataset = TensorDataset(inputs, labels)
@@ -72,10 +69,5 @@ def generate_model(input_size, model_orders, criterion_order, num_epochs, batch_
     
     # 学習実行
     train(model, dataloader, criterion, optimizer, num_epochs)
-
-    #state_dict = model.state_dict()
-    #torch.save(state_dict, 'model.pth')
-    #print(state_dict.keys())
-    #return state_dict
 
     return model

@@ -16,7 +16,6 @@ class LearningRequest(BaseModel):
     num_epochs: int
     batch_size: int
     train_data_id: str
-    test_data_id: str
     created_at: str
     updated_at: str
 
@@ -27,8 +26,8 @@ async def save_learning_request_query(conn, request: LearningRequest):
         INSERT INTO learning_requests (
             id, name, input_size, model_orders, criterion_order, 
             num_epochs, batch_size, train_data_id, 
-            test_data_id, created_at, updated_at
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+            created_at, updated_at
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
     """,
     request.id,
     request.name,
@@ -37,8 +36,7 @@ async def save_learning_request_query(conn, request: LearningRequest):
     request.criterion_order, 
     request.num_epochs, 
     request.batch_size, 
-    request.train_data_id, 
-    request.test_data_id, 
+    request.train_data_id,
     datetime.strptime(request.created_at, "%Y-%m-%d").date(), 
     datetime.strptime(request.updated_at, "%Y-%m-%d").date())
 
@@ -55,9 +53,8 @@ async def update_learning_request_query(conn, request: LearningRequest):
 				num_epochs = $6, 
 				batch_size = $7, 
 				train_data_id = $8, 
-				test_data_id = $9, 
-				created_at = $10, 
-				updated_at = $11
+				created_at = $9, 
+				updated_at = $10
 			WHERE id = $1
     """,
     request.id,
@@ -67,8 +64,7 @@ async def update_learning_request_query(conn, request: LearningRequest):
     request.criterion_order, 
     request.num_epochs, 
     request.batch_size, 
-    request.train_data_id, 
-    request.test_data_id, 
+    request.train_data_id,
     datetime.strptime(request.created_at, "%Y-%m-%d").date(), 
     datetime.strptime(request.updated_at, "%Y-%m-%d").date())
     
@@ -82,7 +78,7 @@ async def delete_learning_request_query(conn, id: str):
 # 取得（1件）
 async def get_learning_request_query(conn, request_id: str):
     row = await conn.fetchrow("""
-        SELECT id, name, input_size, model_orders, criterion_order, num_epochs, batch_size, train_data_id, test_data_id, created_at, updated_at
+        SELECT id, name, input_size, model_orders, criterion_order, num_epochs, batch_size, train_data_id, created_at, updated_at
         FROM learning_requests
         WHERE id = $1
     """, request_id)
@@ -103,7 +99,6 @@ async def get_learning_request_query(conn, request_id: str):
         num_epochs=row["num_epochs"],
         batch_size=row["batch_size"],
         train_data_id=row["train_data_id"],
-        test_data_id=row["test_data_id"],
         created_at=row["created_at"].isoformat(),
         updated_at=row["updated_at"].isoformat()
     )
