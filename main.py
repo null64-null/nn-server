@@ -219,17 +219,22 @@ async def get_learning_request(request: GetRequest):
 # 学習データの生成・保存
 @app.post("/create_learning_data")
 async def create_data(request: CreateLearningDataRequest):
+    id = request.id
+    name = request.name
+    discription = request.discription
     feature = request.feature
+    text_length = request.text_length
+    data_length = request.data_length
     first_text_order = request.first_text_order
     second_text_order = request.second_text_order
-    option_oder = request.option_oder
+    option_order = request.option_order
 
     prompt = ""
 
-    if feature is not None:
-        prompt = prompt_score(feature, option_oder)
-    elif first_text_order is not None and second_text_order is not None:
-        prompt = prompt_relevance(first_text_order, second_text_order, option_oder)
+    if feature is not None and first_text_order is None and second_text_order is None:
+        prompt = prompt_score(feature, text_length, data_length, option_order)
+    elif feature is None and first_text_order is not None and second_text_order is not None:
+        prompt = prompt_relevance(first_text_order, text_length, data_length, second_text_order, option_order)
     else:
         raise HTTPException(status_code=400, detail="リクエストのパターンが不正です")
     
@@ -241,8 +246,13 @@ async def create_data(request: CreateLearningDataRequest):
     async with pool.acquire() as conn:
         try:
             await save_learning_data_query(conn, LearningData(
-                id=str(uuid.uuid4()),
-                name="generated_data",
+                id=id,
+                name=name,
+                discription=discription,
+                feature=feature,
+                first_text_order=first_text_order,
+                second_text_order=second_text_order,
+                option_order=option_order,
                 data=json_data,
             ))
         except Exception as e:

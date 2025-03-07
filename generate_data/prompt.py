@@ -2,9 +2,9 @@ import re
 from fastapi import HTTPException
 import json
 
-def prompt_relevance(first_text_order, second_text_order, option_oder: str = None):
+def prompt_relevance(first_text_order, text_length, data_length, second_text_order, option_order: str = None):
 	prompt = f'''
-		以下のフォーマットで、短文1（Q）と短文2（D）のペアを100個生成してください。
+		以下のフォーマットで、文1（Q）と文2（D）のペアを{data_length}個生成してください。
 		また、それぞれのペアに関連度スコア（0.0〜1.0）を付けてください。
 
 		フォーマット:
@@ -25,19 +25,17 @@ def prompt_relevance(first_text_order, second_text_order, option_oder: str = Non
 		制約:
 		- 50ペアは **高スコア（0.8〜1.0）** で、明確に関連があるものを作成する。
 		- 50ペアは **低スコア（0.0〜0.4）** で、関連が薄いものを作成する。
-		- **Q は{first_text_order}（20〜40文字）。**
-		- **D は{second_text_order}（20〜40文字）。**
+		- **Q は{first_text_order}（{text_length}文字程度）。**
+		- **D は{second_text_order}（{text_length}文字程度）。**
 		- **ランダム性を持たせて、できるだけ多様な組み合わせを作る**。
 		
-    {option_oder}
-
-		100ペアを生成してください。
+    {option_order}
 	'''
 	return prompt
 
-def prompt_score(feature, option_oder: str = None):
+def prompt_score(feature, text_length, data_length, option_order: str = None):
 	prompt = f'''
-		以下のフォーマットで、短文とスコアを100個生成してください。  
+		以下のフォーマットで、文とスコアのペアを{data_length}個生成してください。  
 		また、それぞれのペアに「{feature}の度合（0.0〜1.0）」のスコアを付けてください。
 
 		### **フォーマット（JSON）**
@@ -56,12 +54,10 @@ def prompt_score(feature, option_oder: str = None):
 		制約:
 		- 50ペアは **高スコア（0.8〜1.0）** で、明確に{feature}の度合いが高いものを作成する。
 		- 50ペアは **低スコア（0.0〜0.4）** で{feature}の度合が低いものを作成する。
-		- **短文は（20〜40文字）。**
+		- **文は{text_length}文字程度。**
 		- **ランダム性を持たせて、できるだけ多様な組み合わせを作る**。
 		
-		{option_oder}
-
-		100ペアを生成してください。
+		{option_order}
 	'''
 
 	return prompt

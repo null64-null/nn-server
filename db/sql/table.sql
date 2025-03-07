@@ -1,6 +1,7 @@
 CREATE TABLE models (
     id TEXT PRIMARY KEY,
     name TEXT NOT NULL,
+    discription: TEXT,
     nn BYTEA NOT NULL,  -- バイナリ形式でモデル保存
     learning_history JSONB NOT NULL, -- 学習履歴
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -9,6 +10,8 @@ CREATE TABLE models (
 
 CREATE TABLE learning_requests (
     id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    discription: TEXT,
     input_size INTEGER NOT NULL,
     model_orders JSONB NOT NULL,
     criterion_order TEXT NOT NULL,
@@ -24,6 +27,11 @@ CREATE TABLE learning_requests (
 CREATE TABLE learning_data (
     id TEXT PRIMARY KEY,
     name TEXT NOT NULL,
+    discription TEXT,
+    feature TEXT,
+    first_text_order TEXT,
+    second_text_order TEXT,
+    option_order TEXT,
     data JSONB NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

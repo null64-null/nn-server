@@ -15,6 +15,11 @@ class Score(BaseModel):
 class LearningData(BaseModel):
     id: str
     name: str
+    discription: Optional[str] = None
+    feature: Optional[str] = None
+    first_text_order: Optional[str] = None
+    second_text_order: Optional[str] = None
+    option_order: Optional[str] = None
     data: Union[List[Relevance], List[Score]]
     created_at: Optional[str] = None
 
@@ -25,11 +30,16 @@ async def save_learning_data_query(conn, request: LearningData):
     print(data_json)
     await conn.execute("""
         INSERT INTO learning_data (
-            id, name, data, created_at
-        ) VALUES ($1, $2, $3, $4)
+            id, name, discription, feature, first_text_order, second_text_order, option_order, data, created_at
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
     """,
     request.id,
     request.name,
+    request.discription,
+    request.feature,
+    request.first_text_order,
+    request.second_text_order,
+    request.option_order,
 	data_json,
     datetime.now())
 
@@ -40,19 +50,19 @@ async def delete_learning_data_query(conn, id: str):
 		WHERE id = $1
 	""", id)
      
-# 取得（全件、idのみ）
+# 取得（全件、概要のみ）
 async def get_all_learning_data_ids_query(conn):
     rows = await conn.fetch("""
-        SELECT id
+        SELECT id, name, discription
         FROM learning_data
     """)
     
-    return [row["id"] for row in rows]
+    return rows
 
 # 取得（1件）
 async def get_learning_data_query(conn, data_id: str):
     row = await conn.fetchrow("""
-        SELECT id, name, data, created_at
+        SELECT *
         FROM learning_data
         WHERE id = $1
     """, data_id)
@@ -68,6 +78,11 @@ async def get_learning_data_query(conn, data_id: str):
     return LearningData(
         id=row["id"],
         name=row["name"],
+        discription=row["discription"],
+        feature=row["feature"],
+        first_text_order=row["first_text_order"],
+        second_text_order=row["second_text_order"],
+        option_order=row["option_order"],
         data=data,
         created_at=row["created_at"].isoformat()
     )
