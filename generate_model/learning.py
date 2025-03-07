@@ -1,3 +1,4 @@
+import torch
 import torch.optim as optim
 from torch.utils.data import DataLoader, TensorDataset
 from generate_model.model import CustomNN
@@ -29,10 +30,16 @@ class SimpleNN(nn.Module):
 def train_step(model, criterion, optimizer, inputs, labels):
     # 順伝搬
     outputs = model(inputs) #outputsは多分model情報も込み（modelはnnライブラリメソッド）
-  
-    # 損失計算
+    print(outputs.shape)
+
     #outputsのサイズを[*,1]から[*]に変更してlabelsのサイズと合わせる
-    loss = criterion(outputs.squeeze(), labels) #lossは多分model情報も込み（criterionはnnライブラリメソッド
+    if outputs.shape == torch.Size([1, 1]):
+        outputs = outputs.squeeze(dim=1)
+    else:
+        outputs = outputs.squeeze()
+
+    # 損失計算    
+    loss = criterion(outputs, labels) #lossは多分model情報も込み（criterionはnnライブラリメソッド
     
     # 勾配初期化 & 逆伝搬
     optimizer.zero_grad() #optimizerはmodelを引数であらかじめ取り込んでいる

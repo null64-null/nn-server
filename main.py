@@ -2,7 +2,8 @@ import io
 from fastapi import FastAPI, HTTPException
 import uuid
 import torch
-from torch.serialization import safe_globals
+from torch.nn.modules.linear import Linear
+from torch.nn import Sequential, ReLU, Sigmoid
 from generate_model.model import CustomNN 
 
 from classes.api_request import CreateLearningDataRequest, DeleteRequest, GetRequest, InferenceRequest
@@ -159,14 +160,11 @@ async def delete_model(request: DeleteRequest):
 @app.post("/save_learninig_request")
 async def save_learninig_request(request: LearningRequest):
     pool = await get_db_pool()
-    print("/save_learninig_request")
     async with pool.acquire() as conn:
         try:
             await save_learning_request_query(conn,request)
-            print("sucsess")
             return {"message": "Data saved successfully"}
         except Exception as e:
-            print(e)
             raise HTTPException(status_code=500, detail=str(e))
 
 # 学習リクエストの更新
@@ -294,26 +292,31 @@ async def inference(request: InferenceRequest):
     pool = await get_db_pool()
     async with pool.acquire() as conn:
         try:
+            # 入力テキストをベクトル化
             input_vector = vectorize_text(request.text)
-            imput_vector_flatten = input_vector.squeeze(0).mean(dim=0)
+            input_vector_flatten = input_vector.squeeze(0).mean(dim=0)
 
-            model = await get_model_query(conn, request.model_id)
-          
-            model_binary = model.nn
-            model_buffer = io.BytesIO(model_binary)
-            loaded_model = torch.load(model_buffer)
+            # DBからモデルを取得
+            model_data = await get_model_query(conn, request.model_id)
+            if model_data is None:
+                raise HTTPException(status_code=404, detail="Model not found")
+            
+            # 必要なライブラリを追加
+            torch.serialization.add_safe_globals([CustomNN, Sequential, Linear, ReLU, Sigmoid])
 
-            with safe_globals([CustomNN]):
-                loaded_model = CustomNN()  # 事前にモデルをインスタンス化
-                loaded_model.load_state_dict(torch.load(model_buffer, weights_only=True))  # 重みのみロード
-                loaded_model.eval()  # 推論モードに切り替え
+            # バイナリデータをモデルに変換
+            buffer = io.BytesIO(model_data.nn)
+            model = torch.load(buffer)
 
-                with torch.no_grad():
-                    output = loaded_model(imput_vector_flatten)
-                    prediction = output.item()
+            # 推論モードに設定
+            model.eval()
+
+            # 推論実行
+            with torch.no_grad():
+                output = model(input_vector_flatten)
+                prediction = output.item()  # スカラー値に変換
 
             return {"prediction": prediction}
         
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
-

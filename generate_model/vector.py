@@ -59,9 +59,6 @@ def make_vectorized_data_set(learning_data: LearningData):
     score_tensor = torch.tensor(scores, dtype=torch.float32)
     text_tensor = vectorize_texts(texts)
 
-    print(text_tensor.shape)
-    print(score_tensor.shape)
-
     return text_tensor, score_tensor
 
 
