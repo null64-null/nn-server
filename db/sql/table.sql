@@ -11,14 +11,13 @@ CREATE TABLE models (
 CREATE TABLE learning_requests (
     id TEXT PRIMARY KEY,
     name TEXT NOT NULL,
-    discription: TEXT,
-    input_size INTEGER NOT NULL,
+    discription TEXT,
     model_orders JSONB NOT NULL,
     criterion_order TEXT NOT NULL,
+    tokens_length INTEGER NOT NULL,
     num_epochs INTEGER NOT NULL,
     batch_size INTEGER NOT NULL,
     train_data_id TEXT NOT NULL,
-    test_data_id TEXT NOT NULL,
     created_at TIMESTAMP NOT NULL,
     updated_at TIMESTAMP NOT NULL
 );
