@@ -30,7 +30,6 @@ class SimpleNN(nn.Module):
 def train_step(model, criterion, optimizer, inputs, labels):
     # 順伝搬
     outputs = model(inputs) #outputsは多分model情報も込み（modelはnnライブラリメソッド）
-    print(outputs.shape)
 
     #outputsのサイズを[*,1]から[*]に変更してlabelsのサイズと合わせる
     if outputs.shape == torch.Size([1, 1]):
