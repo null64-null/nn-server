@@ -21,4 +21,5 @@ class GetRequest(BaseModel):
     
 class InferenceRequest(BaseModel):
     text: str
+    tokens_length: int
     model_id: str

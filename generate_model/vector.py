@@ -6,7 +6,7 @@ from db.learning_data_query import Relevance ,Score ,LearningData
 tokenizer = BertTokenizer.from_pretrained("cl-tohoku/bert-base-japanese")
 model = BertModel.from_pretrained("cl-tohoku/bert-base-japanese")
 
-def vectorize_text(text, max_length=64):
+def vectorize_text(text, max_length):
     # テキストをトークン化、ID化 
     encoding = tokenizer.encode_plus(
         text,
@@ -26,10 +26,10 @@ def vectorize_text(text, max_length=64):
 
     return embeddings
 
-def vectorize_texts(texts):
+def vectorize_texts(texts, tokens_length):
     vectors = []
     for text in texts:
-        vector = vectorize_text(text)
+        vector = vectorize_text(text, tokens_length)
         vector = vector.squeeze(0).mean(dim=0) #最初の次元を捨てトークンごとの平均を取る
         vectors.append(vector)
     
@@ -53,11 +53,11 @@ def divide_input(learning_data: LearningData):
 
     return texts, scores
 
-def make_vectorized_data_set(learning_data: LearningData):
+def make_vectorized_data_set(learning_data: LearningData, tokens_length: int):
     texts, scores = divide_input(learning_data)
 
     score_tensor = torch.tensor(scores, dtype=torch.float32)
-    text_tensor = vectorize_texts(texts)
+    text_tensor = vectorize_texts(texts, tokens_length)
 
     return text_tensor, score_tensor
 

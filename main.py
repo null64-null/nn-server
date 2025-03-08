@@ -14,7 +14,7 @@ from generate_data.groq import get_completion
 from db.connect import get_db_pool
 from db.learning_request_query import save_learning_request_query, update_learning_request_query, delete_learning_request_query, get_all_learning_request_ids_query, get_learning_request_query, LearningRequest
 from db.learning_data_query import save_learning_data_query, delete_learning_data_query, get_all_learning_data_ids_query, get_learning_data_query, LearningData
-from db.model_query import get_model_query, save_model_query, update_model_query, LearningLog, get_all_model_ids_query, delete_model_query, Model
+from db.model_query import get_model_query, save_model_query, update_model_query, get_all_model_ids_query, delete_model_query, Model
 
 
 # DB接続制御
@@ -45,9 +45,10 @@ async def create_model(request: LearningRequest):
     # パラメタを取得
     id = request.id
     name = request.name
-    input_size = request.input_size
-    model_orders = request.model_orders  # List[LayerOrder]
+    discription = request.discription
+    model_orders = request.model_orders
     criterion_order = request.criterion_order
+    tokens_length = request.tokens_length
     num_epochs = request.num_epochs
     batch_size = request.batch_size
     train_data_id = request.train_data_id
@@ -64,7 +65,7 @@ async def create_model(request: LearningRequest):
     train_data = None
     async with db_pool.acquire() as conn:
         train_data = await get_learning_data_query(conn, train_data_id)
-    inputs, labels = make_vectorized_data_set(train_data)
+    inputs, labels = make_vectorized_data_set(train_data, tokens_length)
     
     input_size = inputs.shape[1]
 
@@ -79,25 +80,16 @@ async def create_model(request: LearningRequest):
     # 学習履歴の更新データを作成
     learning_history = []
     if selected_model is None:
-        learning_history = [
-            LearningLog(
-                accuracy=0.0,
-                learning_request=request
-            )
-        ]
+        learning_history = [request]
     else:
         learning_history = selected_model.learning_history
-        learning_history.append(
-            LearningLog(
-                accuracy=0.0,
-                learning_request=request
-            )
-        )
+        learning_history.append(request)
 
     # model保存リクエストを作成
     req = Model(
         id=id,
         name=name,
+        discription=discription,
         nn=model_bytea,
         learning_history=learning_history,
         created_at=request.created_at,
@@ -116,14 +108,14 @@ async def create_model(request: LearningRequest):
     
     return model #仮
 
-# モデルのidのみ全件取得
+# モデルのid等のみ全件取得
 @app.get("/get_all_model_ids")
 async def get_all_model_ids():
     pool = await get_db_pool()
     async with pool.acquire() as conn:
         try:
-            model_ids = await get_all_model_ids_query(conn)
-            return model_ids
+            ids = await get_all_model_ids_query(conn)
+            return ids
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
 
@@ -189,7 +181,7 @@ async def delete_learninig_request(request: DeleteRequest):
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
 
-# 学習リクエストのidのみ全件取得
+# 学習リクエストのid等のみ全件取得
 @app.get("/get_all_learning_request_ids")
 async def get_all_learning_request_ids():
     pool = await get_db_pool()
@@ -303,7 +295,7 @@ async def inference(request: InferenceRequest):
     async with pool.acquire() as conn:
         try:
             # 入力テキストをベクトル化
-            input_vector = vectorize_text(request.text)
+            input_vector = vectorize_text(request.text, request.tokens_length)
             input_vector_flatten = input_vector.squeeze(0).mean(dim=0)
 
             # DBからモデルを取得

@@ -1,7 +1,7 @@
 CREATE TABLE models (
     id TEXT PRIMARY KEY,
     name TEXT NOT NULL,
-    discription: TEXT,
+    discription TEXT,
     nn BYTEA NOT NULL,  -- バイナリ形式でモデル保存
     learning_history JSONB NOT NULL, -- 学習履歴
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
