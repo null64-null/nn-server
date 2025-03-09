@@ -1,61 +1,82 @@
 # NN Server (API)
 
+## 概要
+
 ## API 仕様
 
 ### モデル (models)
+ニューラルネットワークモデルに関するエンドポイント
 
-#### POST /create_model
+- POST /create_model
+  - ニューラルネットワークモデルを生成し、保存する
+  - リクエストの学習リクエスト（learning_request）に応じて、実際にサーバー内で学習が行われる
+  - 学習には、DBに保存されている指定の学習データ（learning_data）を用いる
+  - 既存のidに対するリクエストの場合、学習結果でそのidを持つモデルを更新する（PUTを兼ねる）
 
-ニューラルネットワークモデルを生成し、保存します。学習リクエストの内容に基づいて新しいモデルを作成するか、既存のモデルを更新します。
+- GET /get_all_model_ids
+  - id等のみ、全件取得する
+  - 取得するものは以下
+    - id
+    - name
+    - discription 
 
-#### GET /get_all_model_ids
+- GET /get_model
+  - 指定したidのモデルを1件取得する 
+  - モデルのバイナリデータ以外の全カラムを取得
 
-保存されているすべてのモデルの ID リストを取得します。
-
-#### GET /get_model
-
-指定された ID のモデル情報を取得します。モデルの設定情報と学習履歴を含みます（モデルのバイナリデータは除く）。
-
-#### DELETE /delete_model
-
-指定された ID のモデルを削除します。
+- DELETE /delete_model
+  - 指定したidのモデルを1件削除する
 
 ### 学習リクエスト (learning_request)
+学習の詳細設定（学習リクエスト）に関するエンドポイント
 
-#### POST /save_learninig_request
+- POST /save_learninig_request
+  - 学習リクエストを保存する
 
-新しい学習リクエストを保存します。モデルの構造、学習パラメータ、使用するデータセットなどの設定を含みます。
+- PUT /update_learninig_request
+  - 学習リクエストの内容を更新する
 
-#### PUT /update_learninig_request
+- DELETE /delete_learninig_request
+  - 指定したidの学習リクエストを削除する
 
-既存の学習リクエストの内容を更新します。モデル構造や学習パラメータの変更が可能です。
+- GET /get_all_learning_request_ids
+  - id等のみ、全件取得する
+  - 取得するものは以下
+    - id
+    - name
+    - discription 
 
-#### DELETE /delete_learninig_request
-
-指定された ID の学習リクエストを削除します。
-
-#### GET /get_all_learning_request_ids
-
-保存されているすべての学習リクエストの ID リストを取得します。
-
-#### GET /get_learning_request
-
-指定された ID の学習リクエストの詳細情報を取得します。
+- GET /get_learning_request
+  - 指定したidのモデルを1件取得する 
+  - 全カラムを取得
 
 ### 学習データ (learning_data)
+学習に用いるデータに関するエンドポイント<br>
+更新（PUT）は設けない
 
-#### POST /create_learning_data
+- POST /create_learning_data
+  - 学習のためのデータを生成し、保存する
+  - 学習データはGroqAPIを仕様して生成する
+  - GroqAPIに投げるプロンプトを生成する処理あり
 
-AI を使用して新しい学習データを生成し、保存します。特徴量の生成やテキストの関連性評価などのデータを作成できます。
+- DELETE /delete_learning_data
+  - 指定したidの学習データを削除する
 
-#### DELETE /delete_learning_data
+- GET /get_all_learning_data_ids
+  - id等のみ、全件取得する
+  - 取得するものは以下
+    - id
+    - name
+    - discription 
 
-指定された ID の学習データを削除します。
+- GET /get_learning_data
+  - 指定したidの学習データを1件取得する
+  - 全カラムを取得
 
-#### GET /get_all_learning_data_ids
+### 推論 (inference)
+推論に関するエンドポイント
+- POST /inference
+  - 推論を行う
+  - DBに保存されている学習済みモデルを使用する
+  - 推論結果を返却する
 
-保存されているすべての学習データの ID リストを取得します。
-
-#### GET /get_learning_data
-
-指定された ID の学習データの内容を取得します。
